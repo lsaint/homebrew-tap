@@ -1,19 +1,24 @@
 class Aikito < Formula
+  include Language::Python::Shebang
+
   desc "Git-managed workspace and CLI for AI-agent durable memory and config"
   homepage "https://github.com/lsaint/aikito"
   url "https://github.com/lsaint/aikito/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  sha256 "125dc4a3c8d5c4dfd3bd9a1f9056f16148e31ffe2c036d96ac848167a88da83d"
   license "MIT"
 
-  depends_on "python@3.13"
   depends_on "git"
+  depends_on "python@3.14"
 
   def install
-    libexec.install Dir["*"]
+    libexec.install "bin"
+    rewrite_shebang detected_python_shebang, libexec/"bin/aikito"
     bin.install_symlink libexec/"bin/aikito"
   end
 
   test do
-    system "#{bin}/aikito", "--help"
+    assert_match "aikito 0.1.0", shell_output("#{bin}/aikito --version")
+    system bin/"aikito", "init", testpath/"workspace"
+    assert_path_exists testpath/"workspace/agents.toml"
   end
 end
