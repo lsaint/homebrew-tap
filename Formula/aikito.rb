@@ -14,6 +14,9 @@ class Aikito < Formula
     libexec.install "bin"
     rewrite_shebang detected_python_shebang, libexec/"bin/aikito"
     bin.install_symlink libexec/"bin/aikito"
+
+    # Install shell completions (Bash, Zsh, Fish)
+    generate_completions_from_executable(bin/"aikito", "completion")
   end
 
   test do
