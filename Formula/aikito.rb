@@ -1,7 +1,7 @@
 class Aikito < Formula
   include Language::Python::Shebang
 
-  desc "Git-managed workspace and CLI for AI-agent durable memory and config"
+  desc "Durable workspace for governing context across AI agents"
   homepage "https://github.com/lsaint/aikito"
   url "https://github.com/lsaint/aikito/archive/refs/tags/v1.11.0.tar.gz"
   sha256 "f2e879bc3a1ab75abe59e8cc5f61c1a11b973eb389e2f49265ba681d1a57f0f5"
