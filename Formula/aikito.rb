@@ -3,8 +3,8 @@ class Aikito < Formula
 
   desc "Durable workspace for governing context across AI agents"
   homepage "https://github.com/lsaint/aikito"
-  url "https://github.com/lsaint/aikito/archive/refs/tags/v1.20.0.tar.gz"
-  sha256 "f5e802193f5ca3387b04dd7149102841f603c6aa7968b826afcdf6ffbc6454cc"
+  url "https://github.com/lsaint/aikito/archive/refs/tags/v1.20.1.tar.gz"
+  sha256 "1cd6c96f41ab637a6f22a02a65a858f082955f5e6cd93ca6a3ce76161b885a00"
   license "MIT"
 
   depends_on "git"
@@ -13,7 +13,7 @@ class Aikito < Formula
   def install
     libexec.install "bin"
     libexec.install "web"
-    (libexec/"skills").install "skills/aikito", "skills/durable-memory"
+    libexec.install "templates"
     rewrite_shebang detected_python_shebang, libexec/"bin/aikito"
     bin.install_symlink libexec/"bin/aikito"
 
@@ -22,13 +22,17 @@ class Aikito < Formula
   end
 
   test do
-    assert_match "aikito 1.20.0", shell_output("#{bin}/aikito --version")
+    assert_match "aikito 1.20.1", shell_output("#{bin}/aikito --version")
     system bin/"aikito", "init", "workspace", testpath/"workspace"
     assert_path_exists testpath/"workspace/agents.toml"
     assert_path_exists testpath/"workspace/skills/aikito/SKILL.md"
     assert_path_exists testpath/"workspace/skills/durable-memory/SKILL.md"
-    assert_match 'skills = ["aikito", "durable-memory"]', (testpath/"workspace/skills.toml").read
+    skills_toml = (testpath/"workspace/skills.toml").read
+    assert_match '"aikito"', skills_toml
+    assert_match '"durable-memory"', skills_toml
     assert_match "All tasks must follow the `durable-memory` skill", (testpath/"workspace/global/AGENTS.md").read
     assert_path_exists libexec/"web/index.html"
+    assert_path_exists libexec/"templates/skills/aikito/SKILL.md"
+    assert_path_exists libexec/"templates/skills/durable-memory/SKILL.md"
   end
 end
