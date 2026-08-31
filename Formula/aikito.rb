@@ -3,8 +3,8 @@ class Aikito < Formula
 
   desc "Durable workspace for governing context across AI agents"
   homepage "https://github.com/lsaint/aikito"
-  url "https://github.com/lsaint/aikito/archive/refs/tags/v1.20.1.tar.gz"
-  sha256 "1cd6c96f41ab637a6f22a02a65a858f082955f5e6cd93ca6a3ce76161b885a00"
+  url "https://github.com/lsaint/aikito/archive/refs/tags/v1.21.0.tar.gz"
+  sha256 "a906205b4fae97cf8612be202de8359b2b2f9701d9ac5b4292c2cfa8413fddb7"
   license "MIT"
 
   depends_on "git"
@@ -22,7 +22,7 @@ class Aikito < Formula
   end
 
   test do
-    assert_match "aikito 1.20.1", shell_output("#{bin}/aikito --version")
+    assert_match "aikito 1.21.0", shell_output("#{bin}/aikito --version")
     system bin/"aikito", "init", "workspace", testpath/"workspace"
     assert_path_exists testpath/"workspace/agents.toml"
     assert_path_exists testpath/"workspace/skills/aikito/SKILL.md"
