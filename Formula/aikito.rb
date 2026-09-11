@@ -3,8 +3,8 @@ class Aikito < Formula
 
   desc "Durable workspace for governing context across AI agents"
   homepage "https://github.com/lsaint/aikito"
-  url "https://files.pythonhosted.org/packages/bb/0f/d8f77abbdd04f83994d45e0c0c0b382f6dc18f19da3ca4963781d228d428/aikito-1.31.0.tar.gz"
-  sha256 "0fdddcd891519d4a13bfeb67f189b952cbf26dc472835898d50839e17b19f4bd"
+  url "https://files.pythonhosted.org/packages/d2/cf/4086cb3fcb52d66cd71c7881ce241f97e4cb2e68c46eb4ebf8e1f9a4050d/aikito-1.32.0.tar.gz"
+  sha256 "4faf788b3bf9fe8c4e18516569ef69b7faa14b69492133d3f10c11ef86a08855"
   license "MIT"
 
   depends_on "git"
@@ -28,6 +28,7 @@ class Aikito < Formula
 
     pkg = Pathname.glob(libexec/"lib/python*/site-packages/aikito").first
     assert_path_exists pkg/"web/index.html"
+    assert_path_exists pkg/"web/marked.umd.js"
     assert_path_exists pkg/"templates/skills/durable-memory/SKILL.md"
   end
 end
