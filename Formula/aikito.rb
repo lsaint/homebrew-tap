@@ -3,8 +3,8 @@ class Aikito < Formula
 
   desc "Durable workspace for governing context across AI agents"
   homepage "https://github.com/lsaint/aikito"
-  url "https://files.pythonhosted.org/packages/7a/c1/161ef6ebf9d6f285af39457aee29b77bbf0cbd50390cbd4e443abb6fcdca/aikito-1.36.0.tar.gz"
-  sha256 "7f8a626b0fa096a6c25f1d07b8e1edcbb5f1d71f8264c19d5b924f29ef5c999e"
+  url "https://files.pythonhosted.org/packages/8e/9d/af109e5a851e2a4a081b47b034a7bfabe4e64489e759b2b35fe8440a0c60/aikito-1.36.1.tar.gz"
+  sha256 "35d432d9db56abdc653d0d3de5e819a394df21384ecf54ad7f0478b2e99935b8"
   license "MIT"
 
   depends_on "git"
@@ -20,6 +20,7 @@ class Aikito < Formula
     system bin/"aikito", "init", "workspace", testpath/"workspace"
     assert_path_exists testpath/"workspace/agents.toml"
     assert_path_exists testpath/"workspace/skills/aikito/SKILL.md"
+    assert_path_exists testpath/"workspace/skills/aikito/references/adoption.md"
     assert_path_exists testpath/"workspace/skills/durable-memory/SKILL.md"
     skills_toml = (testpath/"workspace/skills.toml").read
     assert_match '"aikito"', skills_toml
@@ -29,6 +30,7 @@ class Aikito < Formula
     pkg = Pathname.glob(libexec/"lib/python*/site-packages/aikito").first
     assert_path_exists pkg/"web/index.html"
     assert_path_exists pkg/"web/marked.umd.js"
+    assert_path_exists pkg/"templates/skills/aikito/references/adoption.md"
     assert_path_exists pkg/"templates/skills/durable-memory/SKILL.md"
   end
 end
