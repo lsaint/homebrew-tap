@@ -1,0 +1,159 @@
+name: Update Aikito Formula
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Aikito release version (e.g. 1.44.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  update-formula:
+    name: Update Formula for Aikito ${{ inputs.version }}
+    runs-on: macos-latest
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Fetch PyPI metadata and update Formula
+        id: pypi
+        run: |
+          python3 - << 'EOF'
+          import json
+          import os
+          import re
+          import sys
+          import time
+          import urllib.request
+          import hashlib
+
+          version = os.environ.get("VERSION", "").strip().lstrip("v")
+          if not version:
+              print("Error: VERSION input is empty", file=sys.stderr)
+              sys.exit(1)
+
+          api_url = f"https://pypi.org/pypi/aikito/{version}/json"
+          print(f"Querying PyPI API: {api_url}")
+
+          max_retries = 10
+          delay = 10
+          metadata = None
+
+          for attempt in range(1, max_retries + 1):
+              try:
+                  req = urllib.request.Request(
+                      api_url,
+                      headers={"User-Agent": "homebrew-tap-update/1.0"}
+                  )
+                  with urllib.request.urlopen(req, timeout=30) as resp:
+                      if resp.status == 200:
+                          metadata = json.loads(resp.read().decode("utf-8"))
+                          print(f"Successfully retrieved metadata for aikito {version}")
+                          break
+              except Exception as e:
+                  print(f"Attempt {attempt}/{max_retries} failed: {e}")
+                  if attempt < max_retries:
+                      time.sleep(delay)
+
+          if not metadata:
+              print(f"Error: Failed to fetch PyPI metadata for aikito {version} after {max_retries} attempts", file=sys.stderr)
+              sys.exit(1)
+
+          urls = metadata.get("urls", [])
+          sdist = next((u for u in urls if u.get("packagetype") == "sdist"), None)
+          if not sdist:
+              print(f"Error: No sdist found in PyPI metadata for aikito {version}", file=sys.stderr)
+              sys.exit(1)
+
+          sdist_url = sdist["url"]
+          expected_sha256 = sdist["digests"]["sha256"]
+          print(f"Found sdist URL: {sdist_url}")
+          print(f"PyPI reported SHA-256: {expected_sha256}")
+
+          # Download and verify archive checksum
+          print("Downloading sdist archive to verify checksum...")
+          with urllib.request.urlopen(sdist_url, timeout=60) as resp:
+              archive_data = resp.read()
+
+          actual_sha256 = hashlib.sha256(archive_data).hexdigest()
+          if actual_sha256 != expected_sha256:
+              print(f"Error: SHA-256 mismatch! Expected {expected_sha256}, calculated {actual_sha256}", file=sys.stderr)
+              sys.exit(1)
+          print(f"SHA-256 verified successfully: {actual_sha256}")
+
+          # Update Formula/aikito.rb
+          formula_path = "Formula/aikito.rb"
+          with open(formula_path, "r", encoding="utf-8") as f:
+              content = f.read()
+
+          # Replace url and sha256
+          url_pattern = r'url\s+"https://files\.pythonhosted\.org/packages/[^"]+"'
+          sha_pattern = r'sha256\s+"[0-9a-fA-F]{64}"'
+
+          if not re.search(url_pattern, content):
+              print(f"Error: Could not find url line in {formula_path}", file=sys.stderr)
+              sys.exit(1)
+          if not re.search(sha_pattern, content):
+              print(f"Error: Could not find sha256 line in {formula_path}", file=sys.stderr)
+              sys.exit(1)
+
+          new_content = re.sub(url_pattern, f'url "{sdist_url}"', content)
+          new_content = re.sub(sha_pattern, f'sha256 "{actual_sha256}"', new_content)
+
+          with open(formula_path, "w", encoding="utf-8") as f:
+              f.write(new_content)
+
+          print(f"Updated {formula_path}")
+          EOF
+        env:
+          VERSION: ${{ inputs.version }}
+
+      - name: Check git diff
+        id: diff
+        run: |
+          git diff Formula/aikito.rb
+          if git diff --quiet Formula/aikito.rb; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Formula is already up-to-date."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Syntax and style check
+        run: |
+          ruby -c Formula/aikito.rb
+          brew style Formula/aikito.rb
+
+      - name: Commit Formula changes locally
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/aikito.rb
+          git commit -m "aikito ${{ inputs.version }}"
+
+      - name: Tap local repository and audit Formula
+        run: |
+          brew tap lsaint/tap "$GITHUB_WORKSPACE"
+          brew audit --strict --formula lsaint/tap/aikito
+
+      - name: Build and test Formula
+        run: |
+          brew install --build-from-source lsaint/tap/aikito
+          brew test lsaint/tap/aikito
+          aikito --version
+
+      - name: Push to main
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git push origin main
+          echo "Pushed commit $(git rev-parse HEAD) to origin/main"
