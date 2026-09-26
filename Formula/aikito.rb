@@ -3,8 +3,8 @@ class Aikito < Formula
 
   desc "Durable workspace for governing context across AI agents"
   homepage "https://github.com/lsaint/aikito"
-  url "https://files.pythonhosted.org/packages/b4/48/3aea92f2e6cbe0f566c9b71fd8df7328c8c51cd25e4288116726a9e40e8e/aikito-1.53.0.tar.gz"
-  sha256 "4a90d7ca75d1f62cfe2ca80bc564f943032bb2e667aaa0b44de2ba42f3abbd4a"
+  url "https://files.pythonhosted.org/packages/6d/e0/31ae55137c37797e0cc36879ef9290822687f363c04b79344a7382867199/aikito-1.54.0.tar.gz"
+  sha256 "f174b3c4fb2843431f1739bdfe82d07c15500b93cefa1dd7baa2712d84aa28db"
   license "MIT"
 
   depends_on "git"
@@ -20,7 +20,7 @@ class Aikito < Formula
     system bin/"aikito", "init", "workspace", testpath/"workspace"
     assert_path_exists testpath/"workspace/config.toml"
     assert_path_exists testpath/"workspace/layout.toml"
-    assert_path_exists testpath/"workspace/agents/codex.toml"
+    assert_path_exists testpath/"workspace/agents"
     assert_path_exists testpath/"workspace/skills/aikito/SKILL.md"
     assert_path_exists testpath/"workspace/skills/aikito/references/adoption.md"
     assert_path_exists testpath/"workspace/skills/durable-memory/SKILL.md"
@@ -33,6 +33,7 @@ class Aikito < Formula
     assert_path_exists pkg/"bundled_skills.py"
     assert_path_exists pkg/"web/index.html"
     assert_path_exists pkg/"web/marked.umd.js"
+    assert_path_exists pkg/"templates/agents/codex.toml"
     assert_path_exists pkg/"templates/skills/aikito/references/adoption.md"
     assert_path_exists pkg/"templates/skills/durable-memory/SKILL.md"
   end
