@@ -3,8 +3,8 @@ class Aikito < Formula
 
   desc "Durable workspace for governing context across AI agents"
   homepage "https://github.com/lsaint/aikito"
-  url "https://files.pythonhosted.org/packages/c8/93/beab4563cd4060d62edfe55cdcdfe506f841a5c2a34e4a7a6d84eb1c58b2/aikito-1.52.1.tar.gz"
-  sha256 "413bfc65b3e36c76149a24592b1cb94a624cb1f7f9687b3d4da9a91a3764b2cf"
+  url "https://files.pythonhosted.org/packages/b4/48/3aea92f2e6cbe0f566c9b71fd8df7328c8c51cd25e4288116726a9e40e8e/aikito-1.53.0.tar.gz"
+  sha256 "4a90d7ca75d1f62cfe2ca80bc564f943032bb2e667aaa0b44de2ba42f3abbd4a"
   license "MIT"
 
   depends_on "git"
@@ -18,7 +18,9 @@ class Aikito < Formula
   test do
     assert_match "aikito #{version}", shell_output("#{bin}/aikito --version")
     system bin/"aikito", "init", "workspace", testpath/"workspace"
-    assert_path_exists testpath/"workspace/agents.toml"
+    assert_path_exists testpath/"workspace/config.toml"
+    assert_path_exists testpath/"workspace/layout.toml"
+    assert_path_exists testpath/"workspace/agents/codex.toml"
     assert_path_exists testpath/"workspace/skills/aikito/SKILL.md"
     assert_path_exists testpath/"workspace/skills/aikito/references/adoption.md"
     assert_path_exists testpath/"workspace/skills/durable-memory/SKILL.md"
