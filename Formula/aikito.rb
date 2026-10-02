@@ -3,8 +3,8 @@ class Aikito < Formula
 
   desc "Durable workspace for governing context across AI agents"
   homepage "https://github.com/lsaint/aikito"
-  url "https://files.pythonhosted.org/packages/99/7e/eff0f96f76eab64d75ab5954d7ae674c670e524c75ea37e8e7e9a39c11b4/aikito-1.57.1.tar.gz"
-  sha256 "c5950fff1321a2096376698b8ff9e4fb355814aaa515516d0e74b9aa40600fbd"
+  url "https://files.pythonhosted.org/packages/43/db/c3e391c342ab8b1c3ebfd2aa682e15a15bbda3b7a33386c07ef6cfcf44c9/aikito-1.57.2.tar.gz"
+  sha256 "92196aeedcf7d65764ecd061f74761e3467fda36b78bf10a2e88c1ca7d4634a7"
   license "MIT"
 
   depends_on "git"
