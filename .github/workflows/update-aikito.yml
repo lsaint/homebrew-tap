@@ -24,96 +24,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify Formula update rules
+        run: python3 -m unittest discover -s tests
+
       - name: Fetch PyPI metadata and update Formula
         id: pypi
-        run: |
-          python3 - << 'EOF'
-          import json
-          import os
-          import re
-          import sys
-          import time
-          import urllib.request
-          import hashlib
-
-          version = os.environ.get("VERSION", "").strip().lstrip("v")
-          if not version:
-              print("Error: VERSION input is empty", file=sys.stderr)
-              sys.exit(1)
-
-          api_url = f"https://pypi.org/pypi/aikito/{version}/json"
-          print(f"Querying PyPI API: {api_url}")
-
-          max_retries = 10
-          delay = 10
-          metadata = None
-
-          for attempt in range(1, max_retries + 1):
-              try:
-                  req = urllib.request.Request(
-                      api_url,
-                      headers={"User-Agent": "homebrew-tap-update/1.0"}
-                  )
-                  with urllib.request.urlopen(req, timeout=30) as resp:
-                      if resp.status == 200:
-                          metadata = json.loads(resp.read().decode("utf-8"))
-                          print(f"Successfully retrieved metadata for aikito {version}")
-                          break
-              except Exception as e:
-                  print(f"Attempt {attempt}/{max_retries} failed: {e}")
-                  if attempt < max_retries:
-                      time.sleep(delay)
-
-          if not metadata:
-              print(f"Error: Failed to fetch PyPI metadata for aikito {version} after {max_retries} attempts", file=sys.stderr)
-              sys.exit(1)
-
-          urls = metadata.get("urls", [])
-          sdist = next((u for u in urls if u.get("packagetype") == "sdist"), None)
-          if not sdist:
-              print(f"Error: No sdist found in PyPI metadata for aikito {version}", file=sys.stderr)
-              sys.exit(1)
-
-          sdist_url = sdist["url"]
-          expected_sha256 = sdist["digests"]["sha256"]
-          print(f"Found sdist URL: {sdist_url}")
-          print(f"PyPI reported SHA-256: {expected_sha256}")
-
-          # Download and verify archive checksum
-          print("Downloading sdist archive to verify checksum...")
-          with urllib.request.urlopen(sdist_url, timeout=60) as resp:
-              archive_data = resp.read()
-
-          actual_sha256 = hashlib.sha256(archive_data).hexdigest()
-          if actual_sha256 != expected_sha256:
-              print(f"Error: SHA-256 mismatch! Expected {expected_sha256}, calculated {actual_sha256}", file=sys.stderr)
-              sys.exit(1)
-          print(f"SHA-256 verified successfully: {actual_sha256}")
-
-          # Update Formula/aikito.rb
-          formula_path = "Formula/aikito.rb"
-          with open(formula_path, "r", encoding="utf-8") as f:
-              content = f.read()
-
-          # Replace url and sha256
-          url_pattern = r'url\s+"https://files\.pythonhosted\.org/packages/[^"]+"'
-          sha_pattern = r'sha256\s+"[0-9a-fA-F]{64}"'
-
-          if not re.search(url_pattern, content):
-              print(f"Error: Could not find url line in {formula_path}", file=sys.stderr)
-              sys.exit(1)
-          if not re.search(sha_pattern, content):
-              print(f"Error: Could not find sha256 line in {formula_path}", file=sys.stderr)
-              sys.exit(1)
-
-          new_content = re.sub(url_pattern, f'url "{sdist_url}"', content)
-          new_content = re.sub(sha_pattern, f'sha256 "{actual_sha256}"', new_content)
-
-          with open(formula_path, "w", encoding="utf-8") as f:
-              f.write(new_content)
-
-          print(f"Updated {formula_path}")
-          EOF
+        run: python3 scripts/update_aikito.py "$VERSION"
         env:
           VERSION: ${{ inputs.version }}
 
@@ -131,7 +47,8 @@ jobs:
       - name: Syntax and style check
         run: |
           ruby -c Formula/aikito.rb
-          brew style Formula/aikito.rb
+          brew tap lsaint/tap "$GITHUB_WORKSPACE"
+          brew style lsaint/tap/aikito
 
       - name: Commit Formula changes locally
         if: steps.diff.outputs.changed == 'true'

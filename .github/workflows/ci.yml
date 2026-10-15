@@ -1,0 +1,33 @@
+name: Formula CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  formula:
+    runs-on: macos-latest
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify immutable update rules
+        run: python3 -m unittest discover -s tests
+      - name: Register checked-out Formula
+        run: brew tap lsaint/tap "$GITHUB_WORKSPACE"
+      - name: Check Formula
+        run: |
+          ruby -c Formula/aikito.rb
+          brew style lsaint/tap/aikito
+          brew audit --strict --formula lsaint/tap/aikito
+      - name: Install and verify encrypted runtime
+        run: |
+          brew install --build-from-source lsaint/tap/aikito
+          brew test lsaint/tap/aikito
+          test -x "$(brew --prefix aikito)/libexec/bin/python"
+          aikito --version
