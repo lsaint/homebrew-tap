@@ -48,6 +48,7 @@ jobs:
         run: |
           ruby -c Formula/aikito.rb
           brew tap lsaint/tap "$GITHUB_WORKSPACE"
+          brew trust lsaint/tap
           brew style lsaint/tap/aikito
 
       - name: Commit Formula changes locally
@@ -61,6 +62,7 @@ jobs:
       - name: Tap local repository and audit Formula
         run: |
           brew tap lsaint/tap "$GITHUB_WORKSPACE"
+          brew trust lsaint/tap
           brew audit --strict --formula lsaint/tap/aikito
 
       - name: Build and test Formula
